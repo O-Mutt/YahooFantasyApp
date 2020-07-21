@@ -66,7 +66,7 @@ function isUserAuthenticated(req, res, next) {
   if (req.user) {
     next();
   } else {
-    res.send('You must login!');
+    res.redirect('/auth/yahoo');
   }
 }
 
@@ -83,6 +83,11 @@ app.get('/auth/yahoo', passport.authenticate('yahoo', {
 // // The middleware receives the data from Yahoo and runs the function on Strategy config
 app.get('/auth/yahoo/callback', passport.authenticate('yahoo'), (req, res) => {
   res.redirect('/secret');
+});
+
+app.get('/chooseLeague', isUserAuthenticated, async (req, res) => {
+  const data = await app.yf.league();
+  res.render('secret.ejs', { data });
 });
 
 // Secret route
