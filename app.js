@@ -2,7 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import YahooStrategy from 'passport-yahoo-oauth2';
 import cookieSession from 'cookie-session';
-import cookieStorage from 'cookie-storage';
+import cs from 'cookie-storage';
 import session from 'express-session';
 import mongoose from 'mongoose';
 import connectMongo from 'connect-mongo';
@@ -11,12 +11,13 @@ import dotenv from 'dotenv';
 import router from './src/routes/index.js';
 import isUserAuthenticated from './src/middleware/user.js';
 
+const cookieStorage = new cs.CookieStorage();
 dotenv.config();
 
 const app = express();
 const MongoStore = connectMongo(session);
 
-mongoose.connect('mongodb://localhost:27017/sess', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 // const mongoStore =
 //   ((err) => {
 //     console.log(err || 'connect-mongodb setup ok');

@@ -1,6 +1,8 @@
 import express from 'express';
 import passport from 'passport';
-import cookieStorage from 'cookie-storage';
+import cs from 'cookie-storage';
+
+const cookieStorage = new cs.CookieStorage();
 
 const router = express.Router();
 

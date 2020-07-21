@@ -1,5 +1,7 @@
 import YahooFantasy from 'yahoo-fantasy';
-import cookieStorage from 'cookie-storage';
+import cs from 'cookie-storage';
+
+const cookieStorage = new cs.CookieStorage();
 
 const yf = new YahooFantasy(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 if (cookieStorage.getItem('yahooToken') !== null) {
