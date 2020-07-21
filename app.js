@@ -2,17 +2,19 @@ import express from 'express';
 import passport from 'passport';
 import YahooStrategy from 'passport-yahoo-oauth2';
 import cookieSession from 'cookie-session';
-import YahooFantasy from 'yahoo-fantasy';
+import cookieStorage from 'cookie-storage';
 import session from 'express-session';
 import mongoose from 'mongoose';
 import connectMongo from 'connect-mongo';
 import dotenv from 'dotenv';
 
+import router from './src/routes/index.js';
+import isUserAuthenticated from './src/middleware/user.js';
+
 dotenv.config();
 
 const app = express();
 const MongoStore = connectMongo(session);
-app.yf = new YahooFantasy(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 
 mongoose.connect('mongodb://localhost:27017/sess', { useNewUrlParser: true, useUnifiedTopology: true });
 // const mongoStore =
@@ -21,10 +23,12 @@ mongoose.connect('mongodb://localhost:27017/sess', { useNewUrlParser: true, useU
 //   }));
 
 // cookieSession config
-// app.use(cookieSession({
-//   maxAge: 24 * 60 * 60 * 1000, // One day in milliseconds
-//   keys: ['key1']
-// }));
+/* app.use(cookieSession({
+  name: 'YahooFantasyAppSession',
+  maxAge: 24 * 60 * 60 * 1000, // One day in milliseconds
+  sameSite: 'strict',
+  secure: 'true'
+})); */
 
 app.use(session({
   secret: process.env.CLIENT_SECRET,
@@ -47,7 +51,7 @@ passport.use(new YahooStrategy.Strategy({
   scope: 'profile fspt-r'
 },
 ((token, tokenSecret, profile, done) => {
-  app.yf.setUserToken(token);
+  cookieStorage.setItem('yahooToken', token);
   done(null, profile);
 })));
 
@@ -61,69 +65,8 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-// Middleware to check if the user is authenticated
-function isUserAuthenticated(req, res, next) {
-  if (req.user) {
-    next();
-  } else {
-    res.redirect('/auth/yahoo');
-  }
-}
-
-// Routes
-app.get('/', (req, res) => {
-  res.render('index.ejs');
-});
-
-// passport.authenticate middleware is used here to authenticate the request
-app.get('/auth/yahoo', passport.authenticate('yahoo', {
-  scope: 'profile fspt-r'// Used to specify the required data
-}));
-
-// // The middleware receives the data from Yahoo and runs the function on Strategy config
-app.get('/auth/yahoo/callback', passport.authenticate('yahoo'), (req, res) => {
-  res.redirect('/secret');
-});
-
-app.get('/chooseLeague', isUserAuthenticated, async (req, res) => {
-  const data = await app.yf.league();
-  res.render('secret.ejs', { data });
-});
-
-// Secret route
-app.get('/secret', isUserAuthenticated, (req, res) => {
-  app.yf.league.transactions(
-    '398.l.51361',
-    (err, data) => {
-      if (err) {
-        res.send(err);
-      } else {
-        // // define Schema
-        // const transactionSchema = mongoose.Schema({
-        //   id: String
-        // });
-
-        // const transaction = mongoose.model('transaction', transactionSchema, 'sess');
-
-        // const transaction1 = new transaction({ id: data.league_key });
-
-        // transaction1.save((err2, result) => {
-        //   if (err2) return console.error(err);
-        //   console.log(`${result.id} saved to sess collection.`);
-        // });
-
-        res.render('secret.ejs', { data });
-      }
-    }
-  );
-});
-
-// Logout route
-app.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
-});
+app.use(router);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server Started at ${process.env.PROTOCOL}${process.env.DOMAIN}:${process.env.PORT}!`);
+  console.log(`\r\n******************************************************************\r\nServer Started at ${process.env.PROTOCOL}${process.env.DOMAIN}:${process.env.PORT}!\r\n******************************************************************\r\n`);
 });
