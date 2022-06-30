@@ -22,7 +22,7 @@
     "express-session": "^1.17.1",
     "mongoose": "^5.9.25",
     "nodemon": "^2.0.4",
-    "passport": "^0.4.1",
+    "passport": "^0.6.0",
     "passport-yahoo-oauth2": "git+https://github.com/auth0/passport-yahoo-oauth2.git",
     "yahoo-fantasy": "^3.2.0"
   },
